@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1216">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gym Gewichte</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root{--bg:#0f1216;--card:#191e25;--card2:#222933;--line:#2e3742;--txt:#eef2f6;--mut:#94a0ad;--acc:#ff9500;--ok:#34c759;--bad:#ff453a;--blue:#4da3ff}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--txt);font:17px/1.4 system-ui,-apple-system,Roboto,"Segoe UI",sans-serif}
+  body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 16px 8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+  header h1{font-size:20px;margin:0;flex:1}
+  header h1 span{color:var(--acc)}
+  main{padding:14px 14px 0;max-width:560px;margin:0 auto}
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:flex;background:#12161c;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:0;color:var(--mut);font-size:15px;padding:12px 4px 14px;font-weight:600}
+  nav button.on{color:var(--acc)}
+  nav button i{display:block;font-style:normal;font-size:22px;line-height:1.1}
+  .view{display:none}.view.on{display:block}
+  label{display:block;font-size:14px;color:var(--mut);margin:0 0 6px 2px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+  .field{margin-bottom:14px}
+  input.big{width:100%;font-size:34px;font-weight:700;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--txt);outline:none;text-align:center}
+  input.big:focus{border-color:var(--acc);background:var(--card2)}
+  .row{display:flex;gap:10px;align-items:stretch}
+  .row>*{flex:1;min-width:0}
+  .unit{position:relative}
+  .unit::after{content:"kg";position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:18px;pointer-events:none}
+  .step{flex:0 0 64px;font-size:18px;font-weight:700;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--txt)}
+  .step:active{background:var(--card2)}
+  .sets input.big{font-size:30px;padding:12px 4px}
+  .setlbl{display:flex;gap:10px}.setlbl span{flex:1;text-align:center;font-size:12px;color:var(--mut);margin-top:4px}
+  .btn{display:block;width:100%;font-size:21px;font-weight:800;padding:17px;border:0;border-radius:16px;background:var(--acc);color:#111;margin:6px 0 16px}
+  .btn:active{filter:brightness(.9)}
+  .btn.sec{background:var(--card2);color:var(--txt);font-size:17px;font-weight:700;padding:14px;border:1px solid var(--line)}
+  .btn.danger{background:#3a1416;color:#ff8a82;border:1px solid #5c2226;font-size:16px;padding:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:14px}
+  #info{display:none}
+  .mhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .mhead .badge{background:var(--acc);color:#111;font-weight:800;border-radius:10px;padding:4px 10px;font-size:18px;flex:0 0 auto}
+  .mhead .title{font-size:24px;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mhead .edit{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 10px;font-size:15px;flex:0 0 auto}
+  .nameRow{display:flex;gap:8px;margin-bottom:8px}
+  .nameRow input{flex:1;min-width:0;font-size:19px;padding:11px 12px;border-radius:12px;border:2px solid var(--acc);background:var(--card2);color:var(--txt);outline:none}
+  .nameRow button{flex:0 0 auto;background:var(--acc);color:#111;border:0;border-radius:12px;padding:0 16px;font-weight:800;font-size:17px}
+  #info.on{display:block}
+  .mname{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;margin-bottom:6px}
+  .mname .n{color:var(--acc)}
+  .mname button{margin-left:auto;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 10px;font-size:14px}
+  .hist{list-style:none;margin:0;padding:0}
+  .hist li{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);align-items:center}
+  .hist li:first-child{border-top:0}
+  .hist .d{color:var(--mut);font-size:14px;flex:0 0 104px}
+  .hist .w{font-weight:800;flex:0 0 auto;min-width:72px}
+  .hist .r{flex:1;font-variant-numeric:tabular-nums}
+  .hist .del{background:none;border:0;color:var(--bad);font-size:20px;padding:4px 8px}
+  .hist li.first .w{color:var(--acc)}
+  .hint{margin-top:8px;background:#20301f;border:1px solid #2f5a2c;color:#b9f5b3;border-radius:12px;padding:10px 12px;font-weight:600}
+  .hint .row{margin-top:8px}
+  .hint button{background:var(--ok);color:#06210a;border:0;border-radius:10px;padding:9px;font-weight:800;font-size:16px}
+  .new{color:var(--mut)}
+  .toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9;background:#1f3b22;border:1px solid #2f6a33;color:#d6ffd2;border-radius:14px;padding:13px 14px;font-weight:700;display:flex;align-items:center;gap:10px;transform:translateY(240%);transition:transform .2s;max-width:560px;margin:0 auto}
+  .toast.on{transform:none}
+  .toast.err{background:#3a1416;border-color:#6c2a2e;color:#ffd0cc}
+  .toast span{flex:1}
+  .toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:10px;padding:6px 10px;font-weight:700}
+  h2{font-size:16px;color:var(--mut);margin:18px 2px 8px;text-transform:uppercase;letter-spacing:.4px}
+  .mlist{list-style:none;padding:0;margin:0}
+  .mlist li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .mlist .num{font-size:24px;font-weight:800;color:var(--acc);min-width:42px;text-align:center}
+  .mlist .mid{flex:1;min-width:0}
+  .mlist .t1{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mlist .t2{color:var(--mut);font-size:14px}
+  .mlist .up{color:var(--ok);font-weight:800;font-size:13px;white-space:nowrap}
+  .muted{color:var(--mut);font-size:14px}
+  .backbtn{background:none;border:0;color:var(--blue);font-size:17px;padding:4px 0 12px;font-weight:600}
+  input.sm{width:100%;font-size:18px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt)}
+  #installBtn{display:none;background:var(--acc);color:#111;border:0;border-radius:10px;padding:7px 12px;font-weight:800;font-size:14px}
+</style>
+</head>
+<body>
+<header><h1>🏋️ Gym <span>Gewichte</span></h1><button id="installBtn">App installieren</button></header>
+
+<main>
+  <!-- ===== Eintragen ===== -->
+  <section id="v-add" class="view on">
+    <div class="field">
+      <label for="m">Gerät Nr.</label>
+      <input id="m" class="big" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" placeholder="z. B. 12">
+    </div>
+
+    <div id="info" class="card"></div>
+
+    <div class="field">
+      <label for="w">Gewicht</label>
+      <div class="row">
+        <button class="step" type="button" data-step="-2.5">−2,5</button>
+        <div class="unit"><input id="w" class="big" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="0"></div>
+        <button class="step" type="button" data-step="2.5">+2,5</button>
+      </div>
+    </div>
+
+    <div class="field sets">
+      <label>Wiederholungen</label>
+      <div class="row">
+        <input id="s1" class="big" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" placeholder="15">
+        <input id="s2" class="big" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" autocomplete="off" placeholder="15">
+        <input id="s3" class="big" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off" placeholder="15">
+      </div>
+      <div class="setlbl"><span>Satz 1</span><span>Satz 2</span><span>Satz 3</span></div>
+    </div>
+
+    <button id="save" class="btn" type="button">Speichern</button>
+
+    <h2 id="todayH" style="display:none">Heute</h2>
+    <ul id="today" class="hist card" style="display:none"></ul>
+  </section>
+
+  <!-- ===== Übersicht ===== -->
+  <section id="v-list" class="view">
+    <div id="listWrap">
+      <h2 style="margin-top:4px">Alle Geräte</h2>
+      <ul id="mlist" class="mlist"></ul>
+      <p id="listEmpty" class="muted">Noch keine Einträge. Trag dein erstes Gerät unter „Eintragen“ ein.</p>
+    </div>
+    <div id="detail" style="display:none">
+      <button class="backbtn" id="back" type="button">‹ Alle Geräte</button>
+      <div class="card">
+        <div class="mname"><span class="n" id="dNum"></span><span id="dName"></span><button id="dRename" type="button">✎ Name</button></div>
+        <div class="muted" id="dStats"></div>
+      </div>
+      <button class="btn" id="dAdd" type="button">Jetzt eintragen</button>
+      <h2>Verlauf</h2>
+      <ul id="dHist" class="hist card"></ul>
+    </div>
+  </section>
+
+  <!-- ===== Daten ===== -->
+  <section id="v-data" class="view">
+    <h2 style="margin-top:4px">Sicherung</h2>
+    <div class="card">
+      <p class="muted" style="margin-top:0">Die Daten liegen nur auf diesem Handy. Mach ab und zu eine Sicherung (z. B. in Google Drive), damit beim Handywechsel nichts verloren geht.</p>
+      <button class="btn sec" id="expJson" type="button">⬇ Sicherung speichern (JSON)</button>
+      <button class="btn sec" id="expCsv" type="button">⬇ Als Tabelle exportieren (CSV/Excel)</button>
+      <button class="btn sec" id="shareJson" type="button" style="display:none">↗ Sicherung teilen (Drive, Mail …)</button>
+      <button class="btn sec" id="impBtn" type="button">⬆ Sicherung laden (JSON oder CSV)</button>
+      <input type="file" id="impFile" accept=".json,.csv,application/json,text/csv,text/plain" style="display:none">
+      <p class="muted" id="stats"></p>
+    </div>
+    <h2>Einstellungen</h2>
+    <div class="card">
+      <label for="maxM">Höchste Gerätenummer im Studio</label>
+      <input id="maxM" class="sm" type="text" inputmode="numeric" pattern="[0-9]*">
+      <p class="muted">Danach springt die App nach der Gerätenummer automatisch zum Gewicht (z. B. bei 40: „5“ springt sofort, „1“ wartet auf eine zweite Ziffer – oder tippe „Weiter“).</p>
+    </div>
+    <button class="btn danger" id="wipe" type="button">Alle Daten löschen</button>
+    <p class="muted" style="text-align:center">Gym Gewichte · v1 · funktioniert offline</p>
+  </section>
+</main>
+
+<nav>
+  <button data-v="add" class="on" type="button"><i>✚</i>Eintragen</button>
+  <button data-v="list" type="button"><i>☰</i>Übersicht</button>
+  <button data-v="data" type="button"><i>⇅</i>Daten</button>
+</nav>
+
+<div class="toast" id="toast"><span id="toastTxt"></span><button id="toastBtn" type="button">Rückgängig</button></div>
+
+<script>
+(function(){
+'use strict';
+var KEY = 'gymGewichte.v1';
+var DEFAULT_REPS = 15;
+var $ = function(id){ return document.getElementById(id); };
+
+// ---------- Speicher ----------
+var db = load();
+function load(){
+  try{
+    var d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && Array.isArray(d.entries)) {
+      d.names = d.names || {}; d.settings = d.settings || {};
+      if (!d.settings.maxM) d.settings.maxM = 40;
+      return d;
+    }
+  }catch(e){}
+  return { entries: [], names: {}, settings: { maxM: 40 } };
+}
+function persist(){
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); return true; }
+  catch(e){ toast('Speichern fehlgeschlagen: ' + e.message, null, true); return false; }
+}
+if (navigator.storage && navigator.storage.persist) { try{ navigator.storage.persist(); }catch(e){} }
+
+// ---------- Hilfen ----------
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function num(v){ if (v == null) return NaN; v = String(v).trim().replace(',', '.'); return v === '' ? NaN : Number(v); }
+function fmtW(w){ return (Math.round(w*100)/100).toString().replace('.', ','); }
+function fmtR(r){ return r.join('-'); }
+function pad(n){ return (n<10?'0':'') + n; }
+function dayKey(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+function daysAgo(iso){
+  var d = new Date(iso), n = new Date();
+  var a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), b = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  return Math.round((b - a) / 86400000);
+}
+function fmtD(iso, short){
+  var d = new Date(iso), k = daysAgo(iso);
+  var s = pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + (short ? '' : String(d.getFullYear()).slice(2));
+  if (k === 0) return 'heute';
+  if (k === 1) return 'gestern';
+  return s;
+}
+function rel(iso){ var k = daysAgo(iso); return k===0?'heute':k===1?'gestern':'vor '+k+' Tagen'; }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function byMachine(m){
+  return db.entries.filter(function(e){ return e.m === m; })
+                   .sort(function(a,b){ return a.t < b.t ? 1 : a.t > b.t ? -1 : 0; });
+}
+function allDone(r){ return r && r.length >= 3 && r.every(function(x){ return x >= DEFAULT_REPS; }); }
+function mLabel(m){ return db.names[m] ? db.names[m] : ''; }
+
+// ---------- Toast ----------
+var toastTimer = null, toastUndo = null;
+function toast(msg, undo, err){
+  $('toastTxt').textContent = msg;
+  toastUndo = undo || null;
+  $('toastBtn').style.display = undo ? '' : 'none';
+  $('toast').className = 'toast on' + (err ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ $('toast').className = 'toast' + (err ? ' err' : ''); }, undo ? 5000 : 2600);
+}
+$('toastBtn').addEventListener('click', function(){
+  if (toastUndo) { toastUndo(); toastUndo = null; }
+  $('toast').className = 'toast';
+});
+
+// ---------- Eintragen ----------
+var mIn = $('m'), wIn = $('w'), sIn = [$('s1'), $('s2'), $('s3')];
+var order = [mIn, wIn, sIn[0], sIn[1], sIn[2]];
+var advTimer = null, editingName = false;
+
+function curMachine(){ var n = parseInt(mIn.value, 10); return n > 0 ? n : null; }
+
+function fillFromLast(m){
+  var last = m ? byMachine(m)[0] : null;
+  if (last){
+    wIn.value = fmtW(last.w);
+    for (var i=0;i<3;i++) sIn[i].value = last.r[i] != null ? last.r[i] : DEFAULT_REPS;
+  } else {
+    wIn.value = '';
+    for (var j=0;j<3;j++) sIn[j].value = DEFAULT_REPS;
+  }
+}
+
+function renderInfo(){
+  var m = curMachine(), box = $('info');
+  if (!m){ box.className = 'card'; box.innerHTML = ''; return; }
+  var list = byMachine(m), name = mLabel(m), h = '';
+  if (name && !editingName){
+    h += '<div class="mhead"><span class="badge">' + m + '</span><span class="title">' + esc(name) + '</span>'
+       + '<button type="button" class="edit" id="renameBtn" aria-label="Name ändern">✎</button></div>';
+  } else {
+    h += '<div class="mhead"><span class="badge">' + m + '</span><span class="title new" style="font-size:17px">' + (name ? 'Name ändern' : 'Gerät noch ohne Namen') + '</span></div>'
+       + '<div class="nameRow"><input id="nameIn" type="text" enterkeyhint="done" autocomplete="off" autocapitalize="words" placeholder="Name, z. B. Beinpresse" value="' + esc(name) + '">'
+       + '<button type="button" id="nameOk">OK</button></div>';
+  }
+  if (!list.length){
+    h += '<div class="new">Neues Gerät – noch kein Eintrag.</div>';
+  } else {
+    h += '<ul class="hist">';
+    list.slice(0,3).forEach(function(e, i){
+      h += '<li' + (i===0?' class="first"':'') + '><span class="d">' + (i===0?'Zuletzt ':'') + esc(fmtD(e.t)) + '</span><span class="w">' + fmtW(e.w) + ' kg</span><span class="r">' + esc(fmtR(e.r)) + '</span></li>';
+    });
+    h += '</ul>';
+    var last = list[0];
+    if (allDone(last.r)){
+      h += '<div class="hint">Letztes Mal ' + esc(fmtR(last.r)) + ' → Gewicht erhöhen?'
+         + '<div class="row"><button type="button" data-inc="2.5">+2,5 kg</button><button type="button" data-inc="5">+5 kg</button></div></div>';
+    }
+  }
+  box.innerHTML = h;
+  box.className = 'card on';
+  if ($('renameBtn')) $('renameBtn').addEventListener('click', function(){ editingName = true; renderInfo(); focusSel($('nameIn')); });
+  if ($('nameIn')){
+    var commit = function(){
+      var v = $('nameIn').value.trim();
+      if (v) db.names[m] = v; else delete db.names[m];
+      persist(); editingName = false; renderInfo(); focusSel(wIn);
+      if (v) toast('✓ Gerät ' + m + ' heißt jetzt „' + v + '“');
+    };
+    $('nameOk').addEventListener('click', commit);
+    // Name wird auch ohne OK sofort gemerkt
+    $('nameIn').addEventListener('input', function(){
+      var v = $('nameIn').value.trim();
+      if (v) db.names[m] = v; else if (!editingName) delete db.names[m];
+      persist();
+    });
+    $('nameIn').addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.keyCode === 13){ e.preventDefault(); commit(); } });
+  }
+  Array.prototype.forEach.call(box.querySelectorAll('[data-inc]'), function(b){
+    b.addEventListener('click', function(){
+      wIn.value = fmtW(last.w + Number(b.getAttribute('data-inc')));
+      for (var i=0;i<3;i++) sIn[i].value = DEFAULT_REPS;
+      focusSel(sIn[0]);
+    });
+  });
+}
+
+function renameMachine(m){
+  var cur = db.names[m] || '';
+  var v = window.prompt('Name für Gerät ' + m + ' (z. B. Beinpresse):', cur);
+  if (v === null) return;
+  v = v.trim();
+  if (v) db.names[m] = v; else delete db.names[m];
+  persist();
+}
+
+function focusSel(el){
+  el.focus();
+  try{ el.setSelectionRange(0, el.value.length); }catch(e){ try{ el.select(); }catch(_){} }
+}
+function next(el){
+  var i = order.indexOf(el);
+  if (i >= 0 && i < order.length - 1) focusSel(order[i+1]);
+}
+
+mIn.addEventListener('input', function(){
+  var clean = mIn.value.replace(/\D/g, '').slice(0, 3);
+  if (clean !== mIn.value) mIn.value = clean;
+  var m = curMachine();
+  editingName = false;
+  fillFromLast(m);
+  renderInfo();
+  clearTimeout(advTimer);
+  var max = db.settings.maxM || 40;
+  if (m && (clean.length >= 2 || m * 10 > max)) {
+    advTimer = setTimeout(function(){
+      if (document.activeElement !== mIn) return;
+      // Ganz neues Gerät ohne Namen: einmal kurz den Namen abfragen, sonst direkt zum Gewicht
+      if (!mLabel(m) && !byMachine(m).length && $('nameIn')) $('nameIn').focus(); else focusSel(wIn);
+    }, 250);
+  }
+});
+wIn.addEventListener('input', function(){
+  var c = wIn.value.replace(/[^\d.,]/g, '');
+  if (c !== wIn.value) wIn.value = c;
+});
+sIn.forEach(function(s){
+  s.addEventListener('input', function(){
+    var c = s.value.replace(/\D/g, '').slice(0, 3);
+    if (c !== s.value) s.value = c;
+    if (c.length >= 2 && s !== sIn[2]) next(s);
+  });
+});
+order.forEach(function(el){
+  el.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.keyCode === 13){
+      e.preventDefault();
+      if (el === sIn[2]) doSave(); else next(el);
+    }
+  });
+  el.addEventListener('focus', function(){ setTimeout(function(){ try{ el.setSelectionRange(0, el.value.length); }catch(_){} }, 0); });
+});
+Array.prototype.forEach.call(document.querySelectorAll('[data-step]'), function(b){
+  b.addEventListener('click', function(){
+    var w = num(wIn.value); if (isNaN(w)) w = 0;
+    w = Math.max(0, w + Number(b.getAttribute('data-step')));
+    wIn.value = fmtW(w);
+  });
+});
+
+function doSave(){
+  var m = curMachine();
+  if (!m){ toast('Bitte Gerätenummer eingeben', null, true); focusSel(mIn); return null; }
+  var w = num(wIn.value);
+  if (isNaN(w) || w < 0){ toast('Bitte Gewicht eingeben', null, true); focusSel(wIn); return null; }
+  var r = sIn.map(function(s){ return parseInt(s.value, 10); }).filter(function(x){ return x > 0; });
+  if (!r.length){ toast('Bitte Wiederholungen eingeben', null, true); focusSel(sIn[0]); return null; }
+  var e = { id: uid(), m: m, w: w, r: r, t: new Date().toISOString() };
+  db.entries.push(e);
+  if (!persist()) { db.entries.pop(); return null; }
+  var name = mLabel(m);
+  toast('✓ Gespeichert: ' + m + (name ? ' ' + name : '') + ' · ' + fmtW(w) + ' kg · ' + fmtR(r), function(){
+    db.entries = db.entries.filter(function(x){ return x.id !== e.id; });
+    persist(); renderToday(); renderInfo();
+  });
+  mIn.value = ''; wIn.value = ''; sIn.forEach(function(s){ s.value = ''; });
+  renderInfo(); renderToday();
+  mIn.focus();
+  return e;
+}
+$('save').addEventListener('click', doSave);
+
+function renderToday(){
+  var tk = dayKey(new Date());
+  var list = db.entries.filter(function(e){ return dayKey(new Date(e.t)) === tk; })
+                       .sort(function(a,b){ return a.t < b.t ? 1 : -1; });
+  var ul = $('today');
+  $('todayH').style.display = ul.style.display = list.length ? '' : 'none';
+  $('todayH').textContent = 'Heute (' + list.length + ')';
+  ul.innerHTML = list.map(function(e){
+    var d = new Date(e.t), n = mLabel(e.m);
+    return '<li><span class="d">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' · <b style="color:var(--acc)">' + e.m + '</b></span><span class="w">' + fmtW(e.w) + ' kg</span><span class="r">' + esc(fmtR(e.r)) + (n ? ' <span class="muted">' + esc(n) + '</span>' : '') + '</span></li>';
+  }).join('');
+}
+
+// ---------- Übersicht ----------
+var detailM = null;
+function machines(){
+  var set = {};
+  db.entries.forEach(function(e){ set[e.m] = 1; });
+  Object.keys(db.names).forEach(function(k){ set[k] = 1; });
+  return Object.keys(set).map(Number).filter(function(x){ return x > 0; }).sort(function(a,b){ return a-b; });
+}
+function renderList(){
+  var ms = machines(), ul = $('mlist');
+  $('listEmpty').style.display = ms.length ? 'none' : '';
+  ul.innerHTML = ms.map(function(m){
+    var last = byMachine(m)[0], n = mLabel(m);
+    var t1 = (n ? esc(n) : 'Gerät ' + m);
+    var t2 = last ? '<b style="color:var(--txt)">' + fmtW(last.w) + ' kg</b> · ' + esc(fmtR(last.r)) + ' · ' + esc(rel(last.t)) : 'noch kein Eintrag';
+    var up = last && allDone(last.r) ? '<span class="up">▲ erhöhen</span>' : '';
+    return '<li data-m="' + m + '"><span class="num">' + m + '</span><div class="mid"><div class="t1">' + t1 + '</div><div class="t2">' + t2 + '</div></div>' + up + '</li>';
+  }).join('');
+  Array.prototype.forEach.call(ul.querySelectorAll('li'), function(li){
+    li.addEventListener('click', function(){ openDetail(Number(li.getAttribute('data-m'))); });
+  });
+}
+function openDetail(m){
+  detailM = m;
+  $('listWrap').style.display = 'none'; $('detail').style.display = '';
+  renderDetail(); window.scrollTo(0,0);
+}
+function closeDetail(){ detailM = null; $('detail').style.display = 'none'; $('listWrap').style.display = ''; renderList(); }
+function renderDetail(){
+  var m = detailM, list = byMachine(m), n = mLabel(m);
+  $('dNum').textContent = 'Gerät ' + m;
+  $('dName').textContent = n || '';
+  if (list.length){
+    var maxW = Math.max.apply(null, list.map(function(e){ return e.w; }));
+    var first = list[list.length-1];
+    $('dStats').textContent = list.length + ' Einträge · Bestes Gewicht ' + fmtW(maxW) + ' kg · Start ' + fmtW(first.w) + ' kg (' + fmtD(first.t) + ')';
+  } else $('dStats').textContent = 'Noch kein Eintrag.';
+  var ul = $('dHist');
+  ul.style.display = list.length ? '' : 'none';
+  ul.innerHTML = list.map(function(e){
+    var d = new Date(e.t);
+    return '<li><span class="d">' + esc(fmtD(e.t)) + (daysAgo(e.t) < 2 ? '' : '') + ' <span class="muted">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</span></span><span class="w">' + fmtW(e.w) + ' kg</span><span class="r">' + esc(fmtR(e.r)) + '</span><button class="del" type="button" data-id="' + esc(e.id) + '" aria-label="Löschen">🗑</button></li>';
+  }).join('');
+  Array.prototype.forEach.call(ul.querySelectorAll('.del'), function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-id'), e = db.entries.filter(function(x){ return x.id === id; })[0];
+      if (!e) return;
+      if (!window.confirm('Eintrag löschen?\nGerät ' + e.m + ' · ' + fmtD(e.t) + ' · ' + fmtW(e.w) + ' kg · ' + fmtR(e.r))) return;
+      db.entries = db.entries.filter(function(x){ return x.id !== id; });
+      persist(); renderDetail(); renderToday();
+      toast('Eintrag gelöscht', function(){ db.entries.push(e); persist(); renderDetail(); renderToday(); });
+    });
+  });
+}
+$('back').addEventListener('click', closeDetail);
+$('dRename').addEventListener('click', function(){ renameMachine(detailM); renderDetail(); });
+$('dAdd').addEventListener('click', function(){
+  var m = detailM; show('add');
+  mIn.value = String(m); fillFromLast(m); renderInfo(); focusSel(wIn);
+});
+
+// ---------- Daten: Export / Import ----------
+function stamp(){ var d = new Date(); return dayKey(d); }
+function download(name, text, type){
+  var blob = new Blob([text], { type: type });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+function toJSON(){ return JSON.stringify({ app: 'gym-gewichte', version: 1, exported: new Date().toISOString(), entries: db.entries, names: db.names, settings: db.settings }, null, 1); }
+function csvCell(v){ v = String(v == null ? '' : v); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function toCSV(){
+  var rows = [['Zeitpunkt','Datum','Uhrzeit','Gerät','Name','Gewicht_kg','Satz1','Satz2','Satz3','Satz4','ID']];
+  db.entries.slice().sort(function(a,b){ return a.t < b.t ? -1 : 1; }).forEach(function(e){
+    var d = new Date(e.t);
+    rows.push([e.t, pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear(), pad(d.getHours())+':'+pad(d.getMinutes()), e.m, db.names[e.m] || '', fmtW(e.w), e.r[0]||'', e.r[1]||'', e.r[2]||'', e.r[3]||'', e.id]);
+  });
+  Object.keys(db.names).forEach(function(k){
+    if (!db.entries.some(function(e){ return String(e.m) === k; })) rows.push(['', '', '', k, db.names[k], '', '', '', '', '', '']);
+  });
+  return '\ufeff' + rows.map(function(r){ return r.map(csvCell).join(';'); }).join('\r\n');
+}
+function parseCSV(text){
+  text = text.replace(/^\ufeff/, '');
+  var sep = (text.split(/\r?\n/)[0].indexOf(';') >= 0) ? ';' : ',';
+  var rows = [], row = [], cell = '', q = false;
+  for (var i = 0; i < text.length; i++){
+    var c = text[i];
+    if (q){ if (c === '"'){ if (text[i+1] === '"'){ cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === sep){ row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r'){ if (c === '\r' && text[i+1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(function(r){ return r.some(function(x){ return x.trim() !== ''; }); });
+}
+function importCSV(text){
+  var rows = parseCSV(text); if (!rows.length) throw new Error('Datei ist leer');
+  var h = rows[0].map(function(x){ return x.trim().toLowerCase(); });
+  var ix = function(n){ return h.indexOf(n); };
+  var iT = ix('zeitpunkt'), iD = ix('datum'), iU = ix('uhrzeit'), iM = ix('gerät'), iN = ix('name'), iW = ix('gewicht_kg'), iID = ix('id');
+  if (iM < 0) throw new Error('Spalte „Gerät“ fehlt');
+  var entries = [], names = {};
+  rows.slice(1).forEach(function(r){
+    var m = parseInt(r[iM], 10); if (!(m > 0)) return;
+    if (iN >= 0 && r[iN] && r[iN].trim()) names[m] = r[iN].trim();
+    var w = num(iW >= 0 ? r[iW] : ''); if (isNaN(w)) return;
+    var reps = []; ['satz1','satz2','satz3','satz4'].forEach(function(k){ var j = ix(k); if (j >= 0){ var v = parseInt(r[j], 10); if (v > 0) reps.push(v); } });
+    if (!reps.length) return;
+    var t = iT >= 0 && r[iT] ? r[iT] : '';
+    if (!t || isNaN(new Date(t))){
+      var dm = (iD >= 0 ? r[iD] : '').match(/(\d{1,2})\.(\d{1,2})\.(\d{2,4})/), um = (iU >= 0 ? r[iU] : '').match(/(\d{1,2}):(\d{2})/);
+      if (!dm) return;
+      var y = Number(dm[3]); if (y < 100) y += 2000;
+      t = new Date(y, Number(dm[2])-1, Number(dm[1]), um ? Number(um[1]) : 12, um ? Number(um[2]) : 0).toISOString();
+    }
+    entries.push({ id: (iID >= 0 && r[iID]) ? r[iID] : uid(), m: m, w: w, r: reps, t: t });
+  });
+  return { entries: entries, names: names };
+}
+function merge(data){
+  var ids = {}, added = 0;
+  db.entries.forEach(function(e){ ids[e.id] = 1; });
+  var sig = {}; db.entries.forEach(function(e){ sig[e.m + '|' + e.t + '|' + e.w] = 1; });
+  (data.entries || []).forEach(function(e){
+    var m = parseInt(e.m, 10), w = num(e.w), r = (e.r || []).map(Number).filter(function(x){ return x > 0; });
+    if (!(m > 0) || isNaN(w) || !r.length || !e.t) return;
+    var s = m + '|' + e.t + '|' + w;
+    if (ids[e.id] || sig[s]) return;
+    var ne = { id: e.id || uid(), m: m, w: w, r: r, t: e.t };
+    db.entries.push(ne); ids[ne.id] = 1; sig[s] = 1; added++;
+  });
+  var nNames = 0;
+  Object.keys(data.names || {}).forEach(function(k){ if (data.names[k] && db.names[k] !== data.names[k]){ db.names[k] = data.names[k]; nNames++; } });
+  persist();
+  return { added: added, names: nNames };
+}
+$('expJson').addEventListener('click', function(){ download('gym-gewichte-' + stamp() + '.json', toJSON(), 'application/json'); });
+$('expCsv').addEventListener('click', function(){ download('gym-gewichte-' + stamp() + '.csv', toCSV(), 'text/csv;charset=utf-8'); });
+if (navigator.canShare && typeof File === 'function'){
+  try{
+    var testF = new File(['x'], 't.json', { type: 'application/json' });
+    if (navigator.canShare({ files: [testF] })) $('shareJson').style.display = '';
+  }catch(e){}
+}
+$('shareJson').addEventListener('click', function(){
+  var f = new File([toJSON()], 'gym-gewichte-' + stamp() + '.json', { type: 'application/json' });
+  navigator.share({ files: [f], title: 'Gym Gewichte Sicherung' }).catch(function(){});
+});
+$('impBtn').addEventListener('click', function(){ $('impFile').value = ''; $('impFile').click(); });
+$('impFile').addEventListener('change', function(){
+  var f = this.files && this.files[0]; if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    try{
+      var text = String(rd.result), data;
+      if (/^\s*[\{\[]/.test(text.replace(/^\ufeff/, ''))){
+        data = JSON.parse(text.replace(/^\ufeff/, ''));
+        if (Array.isArray(data)) data = { entries: data };
+      } else data = importCSV(text);
+      var res = merge(data);
+      toast('✓ Import: ' + res.added + ' neue Einträge' + (res.names ? ', ' + res.names + ' Namen' : ''));
+      renderAll();
+    }catch(e){ toast('Import fehlgeschlagen: ' + e.message, null, true); }
+  };
+  rd.readAsText(f);
+});
+$('maxM').addEventListener('change', function(){
+  var v = parseInt(this.value, 10);
+  if (v > 0){ db.settings.maxM = v; persist(); toast('Gespeichert'); } else this.value = db.settings.maxM;
+});
+$('wipe').addEventListener('click', function(){
+  if (!window.confirm('Wirklich ALLE Einträge und Gerätenamen löschen?')) return;
+  if (!window.confirm('Sicher? Das kann nicht rückgängig gemacht werden. Vorher Sicherung gemacht?')) return;
+  db = { entries: [], names: {}, settings: db.settings }; persist(); renderAll(); toast('Alle Daten gelöscht');
+});
+function renderStats(){
+  $('stats').textContent = db.entries.length + ' Einträge · ' + machines().length + ' Geräte' + (db.entries.length ? ' · erster Eintrag ' + fmtD(db.entries.reduce(function(a,b){ return a.t < b.t ? a : b; }).t) : '');
+  $('maxM').value = db.settings.maxM;
+}
+
+// ---------- Navigation ----------
+function show(v){
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'), function(b){ b.className = b.getAttribute('data-v') === v ? 'on' : ''; });
+  ['add','list','data'].forEach(function(k){ $('v-' + k).className = 'view' + (k === v ? ' on' : ''); });
+  if (v === 'list'){ if (detailM) renderDetail(); else renderList(); }
+  if (v === 'data') renderStats();
+  if (v === 'add'){ renderToday(); renderInfo(); }
+}
+Array.prototype.forEach.call(document.querySelectorAll('nav button'), function(b){
+  b.addEventListener('click', function(){ if (b.getAttribute('data-v') === 'list' && detailM) closeDetail(); show(b.getAttribute('data-v')); });
+});
+function renderAll(){ renderToday(); renderInfo(); renderList(); renderStats(); }
+
+// ---------- Installation / Offline ----------
+var deferred = null;
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; $('installBtn').style.display = 'inline-block'; });
+$('installBtn').addEventListener('click', function(){ if (deferred){ deferred.prompt(); deferred = null; $('installBtn').style.display = 'none'; } });
+window.addEventListener('appinstalled', function(){ $('installBtn').style.display = 'none'; });
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+
+renderAll();
+setTimeout(function(){ mIn.focus(); }, 50);
+
+// für Tests
+window.__gym = { db: function(){ return db; }, save: doSave, toCSV: toCSV, importCSV: importCSV, merge: merge };
+})();
+</script>
+</body>
+</html>

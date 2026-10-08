@@ -1,10 +1,13 @@
 // Gym Gewichte – Service Worker (offline cache, stale-while-revalidate)
-const CACHE = 'gym-gewichte-v1';
+const CACHE = 'gym-gewichte-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache:'reload' umgeht den HTTP-Cache, damit wirklich die neue Version geladen wird
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys =>
@@ -17,7 +20,7 @@ self.addEventListener('fetch', e => {
   // Sofort aus dem Cache (schnell, auch ohne Netz im Studio), im Hintergrund aktualisieren
   e.respondWith(caches.open(CACHE).then(cache =>
     cache.match(req, { ignoreSearch: true }).then(cached => {
-      const net = fetch(req).then(res => {
+      const net = fetch(req, { cache: 'no-cache' }).then(res => {
         if (res && res.ok) cache.put(req, res.clone());
         return res;
       }).catch(() => cached || cache.match('./index.html'));

@@ -57,6 +57,7 @@
   .hist li{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);align-items:center}
   .hist li:first-child{border-top:0}
   .hist .d{color:var(--mut);font-size:14px;flex:0 0 104px}
+  #dHist .d{flex:0 0 132px}
   .hist .w{font-weight:800;flex:0 0 auto;min-width:72px}
   .hist .r{flex:1;font-variant-numeric:tabular-nums}
   .hist .del{background:none;border:0;color:var(--bad);font-size:20px;padding:4px 8px}
@@ -68,6 +69,7 @@
   .toast{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:9;background:#1f3b22;border:1px solid #2f6a33;color:#d6ffd2;border-radius:14px;padding:13px 14px;font-weight:700;display:flex;align-items:center;gap:10px;transform:translateY(240%);transition:transform .2s;max-width:560px;margin:0 auto}
   .toast.on{transform:none}
   .toast.err{background:#3a1416;border-color:#6c2a2e;color:#ffd0cc}
+  .toast{pointer-events:none}.toast button{pointer-events:auto}
   .toast span{flex:1}
   .toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:10px;padding:6px 10px;font-weight:700}
   h2{font-size:16px;color:var(--mut);margin:18px 2px 8px;text-transform:uppercase;letter-spacing:.4px}
@@ -81,6 +83,27 @@
   .muted{color:var(--mut);font-size:14px}
   .backbtn{background:none;border:0;color:var(--blue);font-size:17px;padding:4px 0 12px;font-weight:600}
   input.sm{width:100%;font-size:18px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt)}
+  .thumb{flex:0 0 auto;width:52px;height:52px;border-radius:10px;object-fit:cover;border:2px solid var(--line);background:var(--card2)}
+  .camBtn{flex:0 0 auto;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:7px 10px;font-size:15px}
+  .since{color:var(--mut);font-size:14px;margin:0 0 6px}
+  .since b{color:var(--txt)}
+  .mlist .thumb{width:46px;height:46px}
+  .mlist .t3{color:var(--mut);font-size:13px}
+  #lightbox{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px}
+  #lightbox.on{display:flex}
+  #lightbox img{max-width:100%;max-height:65vh;border-radius:14px}
+  #lightbox .cap{font-weight:800;font-size:20px}
+  #lightbox .row{width:100%;max-width:520px}
+  #lightbox .row button{font-size:15px;padding:12px 6px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-weight:700}
+  #lightbox .row button.x{background:var(--acc);color:#111;border:0}
+  .dPhoto{display:flex;gap:12px;align-items:center;margin-top:10px}
+  .dPhoto img{width:96px;height:96px;border-radius:12px;object-fit:cover;border:2px solid var(--line)}
+  .dPhoto .btns{flex:1;display:flex;flex-direction:column;gap:6px}
+  .dPhoto .btns button{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px;font-weight:700;font-size:15px}
+  #updBar{position:fixed;left:0;right:0;top:0;z-index:30;background:var(--blue);color:#04172b;font-weight:800;padding:12px 16px;display:none;align-items:center;gap:10px}
+  #updBar.on{display:flex}
+  #updBar span{flex:1}
+  #updBar button{background:#04172b;color:#fff;border:0;border-radius:10px;padding:8px 12px;font-weight:800}
   #installBtn{display:none;background:var(--acc);color:#111;border:0;border-radius:10px;padding:7px 12px;font-weight:800;font-size:14px}
 </style>
 </head>
@@ -134,6 +157,7 @@
       <div class="card">
         <div class="mname"><span class="n" id="dNum"></span><span id="dName"></span><button id="dRename" type="button">✎ Name</button></div>
         <div class="muted" id="dStats"></div>
+        <div class="dPhoto" id="dPhoto"></div>
       </div>
       <button class="btn" id="dAdd" type="button">Jetzt eintragen</button>
       <h2>Verlauf</h2>
@@ -160,7 +184,7 @@
       <p class="muted">Danach springt die App nach der Gerätenummer automatisch zum Gewicht (z. B. bei 40: „5“ springt sofort, „1“ wartet auf eine zweite Ziffer – oder tippe „Weiter“).</p>
     </div>
     <button class="btn danger" id="wipe" type="button">Alle Daten löschen</button>
-    <p class="muted" style="text-align:center">Gym Gewichte · v1 · funktioniert offline</p>
+    <p class="muted" style="text-align:center">Gym Gewichte · v2 · funktioniert offline</p>
   </section>
 </main>
 
@@ -170,6 +194,13 @@
   <button data-v="data" type="button"><i>⇅</i>Daten</button>
 </nav>
 
+<input type="file" id="photoCam" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="photoGal" accept="image/*" style="display:none">
+<div id="lightbox"><div class="cap" id="lbCap"></div><img id="lbImg" alt="Gerätefoto">
+  <div class="row"><button type="button" id="lbCam">📷 Neues Foto</button><button type="button" id="lbGal">🖼 Galerie</button><button type="button" id="lbDel">🗑 Löschen</button></div>
+  <div class="row"><button type="button" class="x" id="lbClose">Schließen</button></div>
+</div>
+<div id="updBar"><span>Neue Version verfügbar</span><button type="button" id="updBtn">Neu laden</button></div>
 <div class="toast" id="toast"><span id="toastTxt"></span><button id="toastBtn" type="button">Rückgängig</button></div>
 
 <script>
@@ -184,13 +215,20 @@ var db = load();
 function load(){
   try{
     var d = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (d && Array.isArray(d.entries)) {
-      d.names = d.names || {}; d.settings = d.settings || {};
-      if (!d.settings.maxM) d.settings.maxM = 40;
-      return d;
-    }
+    if (d && Array.isArray(d.entries)) return migrate(d);
   }catch(e){}
-  return { entries: [], names: {}, settings: { maxM: 40 } };
+  return { v: 2, entries: [], names: {}, settings: { maxM: 40 } };
+}
+// Alte Daten (v1) bleiben unverändert erhalten – nur Felder ergänzen/normalisieren
+function migrate(d){
+  d.names = d.names || {}; d.settings = d.settings || {};
+  if (!d.settings.maxM) d.settings.maxM = 40;
+  d.entries = d.entries.filter(function(e){ return e && e.t; }).map(function(e){
+    return { id: e.id || uid(), m: parseInt(e.m, 10), w: Number(String(e.w).replace(',', '.')),
+             r: (e.r || []).map(Number).filter(function(x){ return x > 0; }), t: e.t };
+  }).filter(function(e){ return e.m > 0 && !isNaN(e.w); });
+  if (d.v !== 2){ d.v = 2; try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){} }
+  return d;
 }
 function persist(){
   try{ localStorage.setItem(KEY, JSON.stringify(db)); return true; }
@@ -217,6 +255,19 @@ function fmtD(iso, short){
   if (k === 1) return 'gestern';
   return s;
 }
+function fmtFull(iso){ var d = new Date(iso); return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + '.' + d.getFullYear(); }
+// Datum, seit dem das aktuelle Gewicht gilt (frühester Eintrag der letzten Serie mit gleichem Gewicht)
+function sinceOf(list){ // list: neueste zuerst
+  if (!list.length) return null;
+  var w = list[0].w, s = list[0];
+  for (var i = 1; i < list.length && list[i].w === w; i++) s = list[i];
+  return s;
+}
+function bestOf(list){ // höchstes Gewicht, frühestes Datum
+  var b = null;
+  list.forEach(function(e){ if (!b || e.w > b.w || (e.w === b.w && e.t < b.t)) b = e; });
+  return b;
+}
 function rel(iso){ var k = daysAgo(iso); return k===0?'heute':k===1?'gestern':'vor '+k+' Tagen'; }
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function byMachine(m){
@@ -225,6 +276,90 @@ function byMachine(m){
 }
 function allDone(r){ return r && r.length >= 3 && r.every(function(x){ return x >= DEFAULT_REPS; }); }
 function mLabel(m){ return db.names[m] ? db.names[m] : ''; }
+
+// ---------- Fotos (IndexedDB) ----------
+var photos = {}; // m -> dataURL
+var idbP = null;
+function idb(){
+  if (idbP) return idbP;
+  idbP = new Promise(function(res, rej){
+    if (!window.indexedDB) return rej(new Error('IndexedDB nicht verfügbar'));
+    var rq = indexedDB.open('gymGewichte', 1);
+    rq.onupgradeneeded = function(){ rq.result.createObjectStore('photos'); };
+    rq.onsuccess = function(){ res(rq.result); };
+    rq.onerror = function(){ rej(rq.error); };
+  });
+  return idbP;
+}
+function idbTx(mode, fn){
+  return idb().then(function(dbh){ return new Promise(function(res, rej){
+    var tx = dbh.transaction('photos', mode), st = tx.objectStore('photos'), out = fn(st);
+    tx.oncomplete = function(){ res(out && out.result !== undefined ? out.result : out); };
+    tx.onerror = tx.onabort = function(){ rej(tx.error || new Error('IndexedDB-Fehler')); };
+  }); });
+}
+function loadPhotos(){
+  return idb().then(function(dbh){ return new Promise(function(res){
+    var out = {}, rq = dbh.transaction('photos', 'readonly').objectStore('photos').openCursor();
+    rq.onsuccess = function(){ var c = rq.result; if (c){ if (c.value && c.value.img) out[c.key] = c.value.img; c.continue(); } else res(out); };
+    rq.onerror = function(){ res(out); };
+  }); }).then(function(o){ photos = o; return o; }).catch(function(){ return photos; });
+}
+function savePhoto(m, dataURL){
+  return idbTx('readwrite', function(st){ st.put({ img: dataURL, t: new Date().toISOString() }, m); }).then(function(){ photos[m] = dataURL; });
+}
+function deletePhoto(m){
+  return idbTx('readwrite', function(st){ st['delete'](m); }).then(function(){ delete photos[m]; });
+}
+function clearPhotos(){ return idbTx('readwrite', function(st){ st.clear(); }).then(function(){ photos = {}; }); }
+
+// Bild verkleinern: lange Kante max. 800 px, JPEG 0.7
+function shrink(file){
+  return new Promise(function(res, rej){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var W = img.naturalWidth, H = img.naturalHeight, k = Math.min(1, 800 / Math.max(W, H));
+      var c = document.createElement('canvas'); c.width = Math.round(W*k); c.height = Math.round(H*k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error('Bild konnte nicht gelesen werden')); };
+    img.src = url;
+  });
+}
+var photoTarget = null;
+function pickPhoto(m, gallery){ photoTarget = m; var el = $(gallery ? 'photoGal' : 'photoCam'); el.value = ''; el.click(); }
+function onPhotoFile(){
+  var f = this.files && this.files[0], m = photoTarget; if (!f || !m) return;
+  shrink(f).then(function(url){ return savePhoto(m, url); }).then(function(){
+    toast('📷 Foto für Gerät ' + m + ' gespeichert'); refreshPhotoViews(m);
+    if (curMachine() === m && $('v-add').className.indexOf('on') >= 0 && !$('nameIn')) focusSel(wIn);
+  }).catch(function(e){ toast('Foto fehlgeschlagen: ' + e.message, null, true); });
+}
+$('photoCam').addEventListener('change', onPhotoFile);
+$('photoGal').addEventListener('change', onPhotoFile);
+var lbM = null;
+function openLightbox(m){
+  if (!photos[m]) return;
+  lbM = m; $('lbImg').src = photos[m];
+  $('lbCap').textContent = m + (mLabel(m) ? ' · ' + mLabel(m) : '');
+  $('lightbox').className = 'on';
+}
+function closeLightbox(){ lbM = null; $('lightbox').className = ''; $('lbImg').removeAttribute('src'); }
+$('lbClose').addEventListener('click', closeLightbox);
+$('lightbox').addEventListener('click', function(e){ if (e.target === this) closeLightbox(); });
+$('lbCam').addEventListener('click', function(){ var m = lbM; closeLightbox(); pickPhoto(m, false); });
+$('lbGal').addEventListener('click', function(){ var m = lbM; closeLightbox(); pickPhoto(m, true); });
+$('lbDel').addEventListener('click', function(){
+  var m = lbM; if (!window.confirm('Foto von Gerät ' + m + ' löschen?')) return;
+  closeLightbox(); deletePhoto(m).then(function(){ toast('Foto gelöscht'); refreshPhotoViews(m); });
+});
+function refreshPhotoViews(m){
+  if (curMachine() === m) renderInfo();
+  if (detailM === m) renderDetail();
+  renderList();
+}
 
 // ---------- Toast ----------
 var toastTimer = null, toastUndo = null;
@@ -263,14 +398,18 @@ function renderInfo(){
   var m = curMachine(), box = $('info');
   if (!m){ box.className = 'card'; box.innerHTML = ''; return; }
   var list = byMachine(m), name = mLabel(m), h = '';
+  var ph = photos[m] ? '<img class="thumb" id="infoThumb" alt="Foto" src="' + photos[m] + '">' : '';
+  var cam = '<button type="button" class="camBtn" id="infoCam" aria-label="Foto aufnehmen">📷' + (photos[m] ? '' : ' Foto') + '</button>';
   if (name && !editingName){
-    h += '<div class="mhead"><span class="badge">' + m + '</span><span class="title">' + esc(name) + '</span>'
-       + '<button type="button" class="edit" id="renameBtn" aria-label="Name ändern">✎</button></div>';
+    h += '<div class="mhead">' + ph + '<span class="badge">' + m + '</span><span class="title">' + esc(name) + '</span>'
+       + (photos[m] ? '' : cam) + '<button type="button" class="edit" id="renameBtn" aria-label="Name ändern">✎</button></div>';
   } else {
-    h += '<div class="mhead"><span class="badge">' + m + '</span><span class="title new" style="font-size:17px">' + (name ? 'Name ändern' : 'Gerät noch ohne Namen') + '</span></div>'
+    h += '<div class="mhead">' + ph + '<span class="badge">' + m + '</span><span class="title new" style="font-size:17px">' + (name ? 'Name ändern' : 'Gerät noch ohne Namen') + '</span>' + (photos[m] ? '' : cam.replace(' Foto', ' Foto aufnehmen')) + '</div>'
        + '<div class="nameRow"><input id="nameIn" type="text" enterkeyhint="done" autocomplete="off" autocapitalize="words" placeholder="Name, z. B. Beinpresse" value="' + esc(name) + '">'
        + '<button type="button" id="nameOk">OK</button></div>';
   }
+  var sc = sinceOf(list);
+  if (sc) h += '<div class="since"><b>' + fmtW(sc.w) + ' kg</b> seit ' + fmtFull(sc.t) + '</div>';
   if (!list.length){
     h += '<div class="new">Neues Gerät – noch kein Eintrag.</div>';
   } else {
@@ -287,6 +426,8 @@ function renderInfo(){
   }
   box.innerHTML = h;
   box.className = 'card on';
+  if ($('infoThumb')) $('infoThumb').addEventListener('click', function(){ openLightbox(m); });
+  if ($('infoCam')) $('infoCam').addEventListener('click', function(){ pickPhoto(m, false); });
   if ($('renameBtn')) $('renameBtn').addEventListener('click', function(){ editingName = true; renderInfo(); focusSel($('nameIn')); });
   if ($('nameIn')){
     var commit = function(){
@@ -417,6 +558,7 @@ function machines(){
   var set = {};
   db.entries.forEach(function(e){ set[e.m] = 1; });
   Object.keys(db.names).forEach(function(k){ set[k] = 1; });
+  Object.keys(photos).forEach(function(k){ set[k] = 1; });
   return Object.keys(set).map(Number).filter(function(x){ return x > 0; }).sort(function(a,b){ return a-b; });
 }
 function renderList(){
@@ -425,9 +567,12 @@ function renderList(){
   ul.innerHTML = ms.map(function(m){
     var last = byMachine(m)[0], n = mLabel(m);
     var t1 = (n ? esc(n) : 'Gerät ' + m);
-    var t2 = last ? '<b style="color:var(--txt)">' + fmtW(last.w) + ' kg</b> · ' + esc(fmtR(last.r)) + ' · ' + esc(rel(last.t)) : 'noch kein Eintrag';
+    var list = byMachine(m), sc = sinceOf(list);
+    var t2 = last ? '<b style="color:var(--txt)">' + fmtW(last.w) + ' kg</b> seit ' + fmtFull(sc.t) : 'noch kein Eintrag';
+    var t3 = last ? '<div class="t3">' + esc(fmtR(last.r)) + ' · zuletzt ' + fmtFull(last.t) + ' (' + esc(rel(last.t)) + ')</div>' : '';
     var up = last && allDone(last.r) ? '<span class="up">▲ erhöhen</span>' : '';
-    return '<li data-m="' + m + '"><span class="num">' + m + '</span><div class="mid"><div class="t1">' + t1 + '</div><div class="t2">' + t2 + '</div></div>' + up + '</li>';
+    var ph = photos[m] ? '<img class="thumb" alt="" src="' + photos[m] + '">' : '';
+    return '<li data-m="' + m + '"><span class="num">' + m + '</span>' + ph + '<div class="mid"><div class="t1">' + t1 + '</div><div class="t2">' + t2 + '</div>' + t3 + '</div>' + up + '</li>';
   }).join('');
   Array.prototype.forEach.call(ul.querySelectorAll('li'), function(li){
     li.addEventListener('click', function(){ openDetail(Number(li.getAttribute('data-m'))); });
@@ -444,15 +589,26 @@ function renderDetail(){
   $('dNum').textContent = 'Gerät ' + m;
   $('dName').textContent = n || '';
   if (list.length){
-    var maxW = Math.max.apply(null, list.map(function(e){ return e.w; }));
-    var first = list[list.length-1];
-    $('dStats').textContent = list.length + ' Einträge · Bestes Gewicht ' + fmtW(maxW) + ' kg · Start ' + fmtW(first.w) + ' kg (' + fmtD(first.t) + ')';
+    var best = bestOf(list), first = list[list.length-1], sc = sinceOf(list);
+    $('dStats').innerHTML = 'Aktuell <b style="color:var(--txt)">' + fmtW(sc.w) + ' kg</b> seit ' + fmtFull(sc.t) + ' · zuletzt ' + fmtFull(list[0].t)
+      + '<br>Bestes Gewicht <b style="color:var(--acc)">' + fmtW(best.w) + ' kg</b> am ' + fmtFull(best.t)
+      + '<br>Start ' + fmtW(first.w) + ' kg am ' + fmtFull(first.t) + ' · ' + list.length + ' Einträge';
   } else $('dStats').textContent = 'Noch kein Eintrag.';
+  var dp = $('dPhoto');
+  if (photos[m]){
+    dp.innerHTML = '<img id="dImg" alt="Foto" src="' + photos[m] + '"><div class="btns"><button type="button" id="dCam">📷 Foto ersetzen</button><button type="button" id="dGal">🖼 Aus Galerie</button><button type="button" id="dDel">🗑 Foto löschen</button></div>';
+    $('dImg').addEventListener('click', function(){ openLightbox(m); });
+    $('dDel').addEventListener('click', function(){ if (window.confirm('Foto von Gerät ' + m + ' löschen?')) deletePhoto(m).then(function(){ toast('Foto gelöscht'); refreshPhotoViews(m); }); });
+  } else {
+    dp.innerHTML = '<div class="btns"><button type="button" id="dCam">📷 Foto aufnehmen</button><button type="button" id="dGal">🖼 Aus Galerie</button></div>';
+  }
+  $('dCam').addEventListener('click', function(){ pickPhoto(m, false); });
+  $('dGal').addEventListener('click', function(){ pickPhoto(m, true); });
   var ul = $('dHist');
   ul.style.display = list.length ? '' : 'none';
   ul.innerHTML = list.map(function(e){
     var d = new Date(e.t);
-    return '<li><span class="d">' + esc(fmtD(e.t)) + (daysAgo(e.t) < 2 ? '' : '') + ' <span class="muted">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</span></span><span class="w">' + fmtW(e.w) + ' kg</span><span class="r">' + esc(fmtR(e.r)) + '</span><button class="del" type="button" data-id="' + esc(e.id) + '" aria-label="Löschen">🗑</button></li>';
+    return '<li><span class="d">' + fmtFull(e.t) + ' <span class="muted">' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</span></span><span class="w">' + fmtW(e.w) + ' kg</span><span class="r">' + esc(fmtR(e.r)) + '</span><button class="del" type="button" data-id="' + esc(e.id) + '" aria-label="Löschen">🗑</button></li>';
   }).join('');
   Array.prototype.forEach.call(ul.querySelectorAll('.del'), function(b){
     b.addEventListener('click', function(){
@@ -481,7 +637,7 @@ function download(name, text, type){
   document.body.appendChild(a); a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
 }
-function toJSON(){ return JSON.stringify({ app: 'gym-gewichte', version: 1, exported: new Date().toISOString(), entries: db.entries, names: db.names, settings: db.settings }, null, 1); }
+function toJSON(){ return JSON.stringify({ app: 'gym-gewichte', version: 2, exported: new Date().toISOString(), entries: db.entries, names: db.names, settings: db.settings, photos: photos }, null, 1); }
 function csvCell(v){ v = String(v == null ? '' : v); return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 function toCSV(){
   var rows = [['Zeitpunkt','Datum','Uhrzeit','Gerät','Name','Gewicht_kg','Satz1','Satz2','Satz3','Satz4','ID']];
@@ -533,6 +689,11 @@ function importCSV(text){
   });
   return { entries: entries, names: names };
 }
+function importPhotos(ph){
+  var ks = Object.keys(ph || {}).filter(function(k){ return parseInt(k, 10) > 0 && /^data:image\//.test(ph[k]) && photos[k] !== ph[k]; });
+  return ks.reduce(function(p, k){ return p.then(function(){ return savePhoto(parseInt(k, 10), ph[k]); }); }, Promise.resolve())
+    .then(function(){ return ks.length; }).catch(function(){ return 0; });
+}
 function merge(data){
   var ids = {}, added = 0;
   db.entries.forEach(function(e){ ids[e.id] = 1; });
@@ -574,8 +735,10 @@ $('impFile').addEventListener('change', function(){
         if (Array.isArray(data)) data = { entries: data };
       } else data = importCSV(text);
       var res = merge(data);
-      toast('✓ Import: ' + res.added + ' neue Einträge' + (res.names ? ', ' + res.names + ' Namen' : ''));
-      renderAll();
+      importPhotos(data.photos).then(function(np){
+        toast('✓ Import: ' + res.added + ' neue Einträge' + (res.names ? ', ' + res.names + ' Namen' : '') + (np ? ', ' + np + ' Fotos' : ''));
+        renderAll();
+      });
     }catch(e){ toast('Import fehlgeschlagen: ' + e.message, null, true); }
   };
   rd.readAsText(f);
@@ -585,12 +748,13 @@ $('maxM').addEventListener('change', function(){
   if (v > 0){ db.settings.maxM = v; persist(); toast('Gespeichert'); } else this.value = db.settings.maxM;
 });
 $('wipe').addEventListener('click', function(){
-  if (!window.confirm('Wirklich ALLE Einträge und Gerätenamen löschen?')) return;
+  if (!window.confirm('Wirklich ALLE Einträge, Gerätenamen und Fotos löschen?')) return;
   if (!window.confirm('Sicher? Das kann nicht rückgängig gemacht werden. Vorher Sicherung gemacht?')) return;
-  db = { entries: [], names: {}, settings: db.settings }; persist(); renderAll(); toast('Alle Daten gelöscht');
+  db = { v: 2, entries: [], names: {}, settings: db.settings }; persist();
+  clearPhotos().catch(function(){}).then(function(){ renderAll(); toast('Alle Daten gelöscht'); });
 });
 function renderStats(){
-  $('stats').textContent = db.entries.length + ' Einträge · ' + machines().length + ' Geräte' + (db.entries.length ? ' · erster Eintrag ' + fmtD(db.entries.reduce(function(a,b){ return a.t < b.t ? a : b; }).t) : '');
+  $('stats').textContent = db.entries.length + ' Einträge · ' + machines().length + ' Geräte · ' + Object.keys(photos).length + ' Fotos' + (db.entries.length ? ' · erster Eintrag ' + fmtD(db.entries.reduce(function(a,b){ return a.t < b.t ? a : b; }).t) : '');
   $('maxM').value = db.settings.maxM;
 }
 
@@ -612,15 +776,29 @@ var deferred = null;
 window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; $('installBtn').style.display = 'inline-block'; });
 $('installBtn').addEventListener('click', function(){ if (deferred){ deferred.prompt(); deferred = null; $('installBtn').style.display = 'none'; } });
 window.addEventListener('appinstalled', function(){ $('installBtn').style.display = 'none'; });
+function formBusy(){ return !!(mIn.value || (document.activeElement && /INPUT/.test(document.activeElement.tagName) && document.activeElement.value) || lbM); }
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  var hadCtrl = !!navigator.serviceWorker.controller, reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if (!hadCtrl || reloading) { hadCtrl = true; return; }
+    // Neue Version aktiv: sofort neu laden, wenn gerade nichts eingetippt wird – sonst Hinweis
+    if (!formBusy()){ reloading = true; location.reload(); }
+    else $('updBar').className = 'on';
+  });
+  $('updBtn').addEventListener('click', function(){ reloading = true; location.reload(); });
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
+      document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') reg.update().catch(function(){}); });
+    }).catch(function(){});
+  });
 }
 
 renderAll();
+loadPhotos().then(function(){ renderAll(); });
 setTimeout(function(){ mIn.focus(); }, 50);
 
 // für Tests
-window.__gym = { db: function(){ return db; }, save: doSave, toCSV: toCSV, importCSV: importCSV, merge: merge };
+window.__gym = { db: function(){ return db; }, save: doSave, toCSV: toCSV, importCSV: importCSV, merge: merge, toJSON: toJSON, photos: function(){ return photos; }, loadPhotos: loadPhotos, version: 2 };
 })();
 </script>
 </body>

@@ -1,5 +1,5 @@
 // Gym Gewichte – Service Worker (offline cache, stale-while-revalidate)
-const CACHE = 'gym-gewichte-v2';
+const CACHE = 'gym-gewichte-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
